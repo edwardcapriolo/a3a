@@ -51,6 +51,17 @@ public:
 private:
 };
 
+namespace std {
+    template <>
+    struct hash<my_datum> {
+        size_t operator()(const my_datum& p) const {
+            return std::hash<string>{} (p.something);
+        }
+    };
+}
+
+
+
 struct local_origin_tag {
     template <typename T>
     static inline
@@ -90,7 +101,12 @@ public:
         }
         std::cout << "\n";
     }
+    template <typename Origin = local_origin_tag>
+    bool exists(my_datum & my_datum){
+        return data.contains(my_datum);
+    }
 };
+
 
 
 class sharded_cache {
@@ -98,10 +114,8 @@ private:
     seastar::distributed<cache>& _peers;
     inline
     unsigned get_shard(const my_datum& data){
-        //std::hash<my_datum> hasher;
-        //auto x = hasher(data);
-        //std::cout << data << "\n";
-        auto x = std::hash<std::string>()(data.something);
+        std::hash<my_datum> hasher;
+        auto x = hasher(data);
         std::cout << "shard " << x << "\n";
         std::cout << "smp " << seastar::smp::count << "\n";
         return x % seastar::smp::count;
@@ -126,6 +140,17 @@ public:
             return seastar::make_ready_future<>();
         } else {
             return _peers.invoke_on(cpu, &cache::put<local_origin_tag>, std::ref(my_datum)  );
+        }
+    }
+
+    seastar::future<bool> exists(my_datum& my_datum){
+        auto cpu = get_shard(my_datum);
+        if (seastar::this_shard_id() == cpu){
+            return seastar::make_ready_future<bool>( _peers.local().exists(my_datum));
+        } else {
+            //return _peers.invoke_on(cpu, &cache::put<local_origin_tag>, std::ref(my_datum)  );
+            seastar::future<bool> x =  _peers.invoke_on(cpu, &cache::exists<local_origin_tag>, std::ref(my_datum));
+            return x;
         }
     }
 
@@ -166,21 +191,30 @@ private:
                                    std::string* tmp = new std::string(buf.get(), buf.size() - 2);
                                    vector<string> words = split_sentence(*tmp);
                                    if (buf) {
-                                       return out.write(std::move(buf)).then([&out, &me, &buf, &tmp, &words] {
-                                           if( words[0] == "put"){
-                                               my_datum* d = new my_datum();
-                                               d->something = words[1];
-                                               return me->_cache.put(*d).then([&] { return out.flush(); });
-                                           }
-                                           else {
-                                               my_datum* d = new my_datum();
-                                               d->something = words[1];
-                                               return me->_cache.put(*d).then([&] { return out.flush(); });
-                                           }
-                                       }).then([] {
-                                           return seastar::stop_iteration::no;
-                                       });
-                                   } else {
+                                        if (words[0] == "put"){
+                                            my_datum* d = new my_datum();
+                                            d->something = words[1];
+                                            return me->_cache.put(*d).then([&]{
+                                                return out.write("ok\n").then([&]{
+                                                    return out.flush();
+                                                });
+                                            }).then([] { return seastar::stop_iteration::no; });
+                                        } if (words[0] == "exists"){
+                                            my_datum* d = new my_datum();
+                                            d->something = words[1];
+                                            return me->_cache.exists(*d).then([&] (auto found){
+                                                if (found){
+                                                    return out.write("found\n").then([&]{ return out.flush(); });
+                                                } else {
+                                                    return out.write("not found\n").then([&] {return out.flush(); });
+                                                }
+                                            }).then([] { return seastar::stop_iteration::no; });
+                                        } else {
+                                            return out.write("nomatch\n").then([&] {
+                                                return out.flush();
+                                            }).then([] { return seastar::stop_iteration::no; });
+                                        }
+                                    } else {
                                        return seastar::make_ready_future<seastar::stop_iteration>(seastar::stop_iteration::yes);
                                    }
                                });
