@@ -189,6 +189,7 @@ private:
                            return seastar::repeat([&out, &in, &me] {
                                return in.read().then([&out, &me] (seastar::temporary_buffer<char> buf) {
                                    std::string* tmp = new std::string(buf.get(), buf.size() - 2);
+                                   std:cout << "size " << buf.size() << std::endl;
                                    vector<string> words = split_sentence(*tmp);
                                    if (buf) {
                                         if (words[0] == "put"){

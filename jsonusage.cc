@@ -11,13 +11,6 @@ private:
     string version;
 };
 
-class request{
-private:
-    string jsonrpc;
-    string id; //according to the spec this is a number or string
-    string method;
-    //params //?: object
-};
 template <class Item>
 class response_error{
 public:
@@ -69,34 +62,12 @@ void from_json(const json& j, response& r){
     j.at("jsonrpc").get_to(r.jsonrpc);
 }
 
-
-
-class simple{
-public:
-    std::optional<string> x;
-};
-
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(simple, x)
-
 }//end namespace
-
-namespace a3avendorextension {
-    class applicationa_response: private a3a::response {
-    private:
-        a3a::response_error<int> error;
-    };
-}
 
 int main(int argc, char** argv) {
     a3a::response_error<string> err {404, "failed", "really failed"};
     a3a::response r  {"rpc", "id", "result", err};
-    a3a::simple s { "yo"};
     json j = r;
-    //json x = err;
     std::cout << j << std::endl;
-
-    json k = s;
-    std::cout << k << std::endl;
-
     return 0;
 }

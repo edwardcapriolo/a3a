@@ -1,6 +1,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 #include <iostream>
 #include "jsonifyext.hpp"
+#include "request.h"
 
 namespace ns {
 struct ComplexStruct {
@@ -15,6 +16,7 @@ class basic_test : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE( basic_test );
   CPPUNIT_TEST( testEmpty );
   CPPUNIT_TEST( testJsonWithVariant );
+  CPPUNIT_TEST( testModelSerialization );
   CPPUNIT_TEST_SUITE_END();
 public:
   void testEmpty () { int i=5; CPPUNIT_ASSERT(i==5); }
@@ -33,6 +35,33 @@ public:
       std::cout << r.dump() << std::endl;
       CPPUNIT_ASSERT(r.at("id") == 5);
     }
+  }
+  void testModelSerialization(){
+    {
+      using json = nlohmann::json;
+      a3a::request r;
+      r.jsonrpc = "yo";
+      r.id = "56";
+      json j = r;
+
+      std::cout << j.dump() << std::endl;
+    }
+
+    {
+      using json = nlohmann::json;
+      a3a::request_json_params r;
+      r.jsonrpc = "yo";
+      r.id = "56";
+      r.params = json::parse(R"(
+        [ {"x":"y"},{"a":"b"}]
+      )");
+      json j = r;
+
+      std::cout << j.dump() << std::endl;
+      //auto p2 = j.template get<a3a::request_json_params>();
+      //std::cout << p2.params << std::endl;
+    }
+
   }
 };
 CPPUNIT_TEST_SUITE_REGISTRATION( basic_test );

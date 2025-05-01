@@ -7,12 +7,9 @@ include(FetchContent)
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz)
 FetchContent_MakeAvailable(json)
 
-#add_library(jsonifyext jsonifyext.hpp)
-#target_link_libraries(jsonifyext nlohmann_json::nlohmann_json)
-
 add_executable (abc abc.cc)
 add_executable (seastarlink seastarlink.cc)
-add_executable(jsonusage jsonusage.cc jsonifyext.hpp)
+add_executable(jsonusage jsonusage.cc jsonifyext.hpp request.h)
 
 target_link_libraries(jsonusage nlohmann_json::nlohmann_json)
 target_link_libraries(abc Seastar::seastar nlohmann_json::nlohmann_json)
