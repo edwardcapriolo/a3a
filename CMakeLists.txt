@@ -10,12 +10,12 @@ FetchContent_MakeAvailable(json)
 add_executable (abc abc.cc)
 add_executable (seastarlink seastarlink.cc)
 add_executable (jsonusage jsonusage.cc jsonifyext.hpp request.h)
-add_executable (mcpplusplus mcpplusplus.cc request.h jsonifyext.hpp)
+add_executable (mcpplusplus mcpplusplus.cc jsonifyext.hpp request.h )
 
 target_link_libraries(jsonusage nlohmann_json::nlohmann_json)
 target_link_libraries(abc Seastar::seastar nlohmann_json::nlohmann_json)
 target_link_libraries (seastarlink Seastar::seastar nlohmann_json::nlohmann_json)
-
+target_link_libraries(mcpplusplus Seastar::seastar nlohmann_json::nlohmann_json)
 
 enable_testing()
 FILE(GLOB UnitTests_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*_test.cpp" )

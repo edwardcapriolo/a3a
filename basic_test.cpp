@@ -62,8 +62,9 @@ public:
       json j = r;
 
       std::cout << j.dump() << std::endl;
-      auto p2 = j.template get<a3a::request_json_params>();
+      a3a::request_json_params p2 = j.template get<a3a::request_json_params>();
       std::cout << "params " << p2.params << std::endl;
+      std::cout << "ddf " << p2.jsonrpc.value() << std::endl;
       //std::cout << p2.params << std::endl;
     }
 
