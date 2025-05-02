@@ -9,7 +9,8 @@ FetchContent_MakeAvailable(json)
 
 add_executable (abc abc.cc)
 add_executable (seastarlink seastarlink.cc)
-add_executable(jsonusage jsonusage.cc jsonifyext.hpp request.h)
+add_executable (jsonusage jsonusage.cc jsonifyext.hpp request.h)
+add_executable (mcpplusplus mcpplusplus.cc request.h jsonifyext.hpp)
 
 target_link_libraries(jsonusage nlohmann_json::nlohmann_json)
 target_link_libraries(abc Seastar::seastar nlohmann_json::nlohmann_json)

@@ -148,9 +148,7 @@ public:
         if (seastar::this_shard_id() == cpu){
             return seastar::make_ready_future<bool>( _peers.local().exists(my_datum));
         } else {
-            //return _peers.invoke_on(cpu, &cache::put<local_origin_tag>, std::ref(my_datum)  );
-            seastar::future<bool> x =  _peers.invoke_on(cpu, &cache::exists<local_origin_tag>, std::ref(my_datum));
-            return x;
+            return  _peers.invoke_on(cpu, &cache::exists<local_origin_tag>, std::ref(my_datum));
         }
     }
 
@@ -179,6 +177,7 @@ public:
                                     });
                                 });
     }
+
 private:
 
     seastar::future<> handle_connection(seastar::connected_socket s) {
@@ -189,7 +188,6 @@ private:
                            return seastar::repeat([&out, &in, &me] {
                                return in.read().then([&out, &me] (seastar::temporary_buffer<char> buf) {
                                    std::string* tmp = new std::string(buf.get(), buf.size() - 2);
-                                   std:cout << "size " << buf.size() << std::endl;
                                    vector<string> words = split_sentence(*tmp);
                                    if (buf) {
                                         if (words[0] == "put"){

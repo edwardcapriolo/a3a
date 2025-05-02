@@ -9,7 +9,7 @@ struct ComplexStruct {
   std::optional<std::string> x;
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ComplexStruct, x, id);
+NLOHMANN_JSONIFY_ALL_THINGS(ComplexStruct, x, id);
 
 }
 class basic_test : public CppUnit::TestFixture {
@@ -26,6 +26,9 @@ public:
       ns::ComplexStruct comp{ "x" };
       json r = comp;
       std::cout << r.dump() << std::endl;
+      ns::ComplexStruct p2 = r.template get<ns::ComplexStruct>();
+
+      CPPUNIT_ASSERT("x" == std::get<std::string> (p2.id)  );
       CPPUNIT_ASSERT(r.at("id") == "x");
     }
     {
@@ -44,6 +47,7 @@ public:
       r.id = "56";
       json j = r;
 
+      auto p2 = j.template get<a3a::request>();
       std::cout << j.dump() << std::endl;
     }
 
@@ -51,14 +55,15 @@ public:
       using json = nlohmann::json;
       a3a::request_json_params r;
       r.jsonrpc = "yo";
-      r.id = "56";
+      r.id = 56;
       r.params = json::parse(R"(
         [ {"x":"y"},{"a":"b"}]
       )");
       json j = r;
 
       std::cout << j.dump() << std::endl;
-      //auto p2 = j.template get<a3a::request_json_params>();
+      auto p2 = j.template get<a3a::request_json_params>();
+      std::cout << "params " << p2.params << std::endl;
       //std::cout << p2.params << std::endl;
     }
 
