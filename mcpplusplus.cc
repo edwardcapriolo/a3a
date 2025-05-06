@@ -1,5 +1,6 @@
 #include <vector>
 #include "request.h"
+#include "mcppp.hpp"
 #include <seastar/core/seastar.hh>
 #include <seastar/core/future-util.hh>
 #include <seastar/core/app-template.hh>
@@ -22,11 +23,23 @@ using namespace seastar::httpd;
 using namespace std;
 using namespace a3a;
 
+
+
 vector<a3a::resource> list_resources(){
     a3a::resource r1 = { "file:///hobbies.txt", "my-hobbies", "a list of my hobbies one per line."};
     vector<a3a::resource> result;
     result.push_back(r1);
     return result;
+}
+
+a3a::resource_read_response read_resource(){
+    a3a::resource_read r1;
+    r1.uri =  "file:///hobbies.txt";
+    r1.text = "java\nc++\nkarate";
+    a3a::resource_read_response resp;
+    resp.contents = std::vector<a3a::resource_read>();
+    resp.contents.push_back(r1);
+    return resp;
 }
 
 void set_routes(routes& r) {
@@ -41,6 +54,7 @@ void set_routes(routes& r) {
 int main(int argc, char** argv) {
     app_template app;
     return app.run(argc, argv, [] () -> future<int> {
+        //nice example here https://github.com/scylladb/seastar/blob/master/apps/httpd/main.cc
         auto server = new http_server("mcpplusplus");
         set_routes(server->_routes);
         co_await server->listen(seastar::make_ipv4_address({1235}));
